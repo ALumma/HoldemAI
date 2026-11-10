@@ -7,11 +7,19 @@
 
 namespace holdem {
 
+struct BlindPositions {
+    std::optional<Seat> small_blind; // Empty when the small blind is dead.
+    Seat big_blind;
+};
+
 struct HandSetup {
     HandId id = 0;
     Stakes stakes;
     Seat button = 0;
     std::vector<SeatAssignment> players;
+    // When present, use these positions rather than deriving blinds from button.
+    // Necessary for tournament hands with a dead button or dead small blind.
+    std::optional<BlindPositions> blinds;
 };
 
 // This is the only hand representation supplied to a decision-making policy.
@@ -29,6 +37,7 @@ struct PlayerObservation {
     std::vector<BettingEvent> betting_history;
     Chips pot; // Total committed chips, including the current street.
     LegalActions legal; // Empty unless viewer is the acting player.
+    std::optional<BlindPositions> blinds; // Public dead-blind positions, if supplied.
 };
 
 struct ChanceOutcome {

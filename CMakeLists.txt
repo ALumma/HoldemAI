@@ -1,13 +1,23 @@
 cmake_minimum_required(VERSION 3.20)
 project(HoldemAI VERSION 0.1.0 LANGUAGES CXX)
 
-# Interface-only until a concrete rules implementation is added.
-add_library(holdem_engine INTERFACE)
-target_include_directories(holdem_engine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_compile_features(holdem_engine INTERFACE cxx_std_20)
+add_library(holdem_engine src/types.cpp src/tournament.cpp src/training.cpp)
+target_include_directories(holdem_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(holdem_engine PUBLIC cxx_std_20)
 
 add_executable(engine_outline examples/engine_outline.cpp)
 target_link_libraries(engine_outline PRIVATE holdem_engine)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(holdem_engine PRIVATE -Wall -Wextra -Wpedantic)
     target_compile_options(engine_outline PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(engine_tests tests/engine_tests.cpp)
+    target_link_libraries(engine_tests PRIVATE holdem_engine)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(engine_tests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    add_test(NAME engine_tests COMMAND engine_tests)
 endif()
