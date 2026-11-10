@@ -3,7 +3,9 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace holdem {
@@ -50,6 +52,7 @@ struct Action {
     // Total contribution on this street for raise_to; zero for other actions.
     // A bet into an unopened pot is also represented as raise_to.
     Chips raise_to = 0;
+    bool operator==(const Action&) const = default;
 };
 
 struct RaiseRange {
@@ -98,5 +101,19 @@ struct HandResult {
     std::vector<PlayerResult> players;
     std::vector<Pot> pots; // Settled pots, retained for auditing.
 };
+
+// Strict notation: ranks 23456789TJQKA and suits cdhs, e.g. As or Td.
+[[nodiscard]] Card parse_card(std::string_view text);
+[[nodiscard]] std::string to_string(Card card);
+[[nodiscard]] std::uint8_t card_id(Card card); // rank-major IDs in [0, 51].
+[[nodiscard]] Card card_from_id(std::uint8_t id);
+[[nodiscard]] std::array<Card, 52> standard_deck();
+void validate_cards(std::span<const Card> cards);
+void validate(const Stakes& stakes);
+void validate(const LegalActions& actions);
+[[nodiscard]] bool is_legal(const LegalActions& legal, const Action& action);
+// Throw overflow_error rather than wrap; also usable for signed chip deltas.
+[[nodiscard]] Chips checked_add(Chips left, Chips right);
+[[nodiscard]] Chips checked_subtract(Chips left, Chips right);
 
 } // namespace holdem
